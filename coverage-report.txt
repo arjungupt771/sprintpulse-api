@@ -1,0 +1,34 @@
+pytest --cov report
+
+Test run:
+- Platform: win32
+- Python: 3.14.0
+- Tests: 6 passed
+- Coverage: 70%
+
+Key sad paths covered:
+- Unavailable engineer assignment returns 409.
+- Backwards task status transition returns 409.
+
+Coverage summary:
+
+Name                               Stmts   Miss  Cover
+----------------------------------------------------------------
+app/core/config.py                    11      0   100%
+app/core/database.py                  12      2    83%
+app/core/exceptions.py                14      0   100%
+app/main.py                           13      0   100%
+app/models/entities.py                59      0   100%
+app/models/enums.py                   19      0   100%
+app/routers/clients.py                22      4    82%
+app/routers/engineers.py              16      4    75%
+app/routers/projects.py               21      6    71%
+app/routers/sprints.py                16      2    88%
+app/routers/tasks.py                  23      5    78%
+app/schemas/common.py                 17      4    76%
+app/services/client_service.py        33     12    64%
+app/services/sprint_service.py        42     17    60%
+app/services/task_service.py          43     12    72%
+----------------------------------------------------------------
+TOTAL                                572    172    70%
+
