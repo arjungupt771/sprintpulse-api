@@ -49,12 +49,16 @@ async def get_project_health(session: AsyncSession, project_id: int) -> ProjectH
     completion_points = 35.0 * (done_tasks / total_tasks) if total_tasks else 0.0
     schedule_points = 25.0 * (1 - overdue_tasks / total_tasks) if total_tasks else 25.0
     estimated = sum(task.estimated_hours for task in tasks)
-    actual = sum(task.actual_hours for task in tasks)
-    if estimated == 0:
+    if estimated <= 0:
         estimate_points = 20.0
     else:
-        variance = min(abs(actual - estimated) / estimated, 1)
+        absolute_error = sum(
+            abs(task.actual_hours - task.estimated_hours)
+            for task in tasks
+            )
+        variance = min(absolute_error / estimated, 1.0)
         estimate_points = 20.0 * (1 - variance)
+
     sprint_points = (
         20.0 * sum(1 for sprint in project.sprints if sprint.status == SprintStatus.DONE) / len(project.sprints)
         if project.sprints

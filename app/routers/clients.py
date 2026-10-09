@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
@@ -15,12 +15,16 @@ async def create_client(
     return ClientResponse.model_validate(await client_service.create_client(session, payload))
 
 
+
 @router.get("", response_model=list[ClientResponse])
 async def list_clients(
-    skip: int = 0, limit: int = 10, session: AsyncSession = Depends(get_session)
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=10, ge=1, le=100),
+    session: AsyncSession = Depends(get_session),
 ) -> list[ClientResponse]:
     clients = await client_service.list_clients(session, skip, limit)
     return [ClientResponse.model_validate(client) for client in clients]
+
 
 
 @router.get("/{client_id}", response_model=ClientWithProjects)

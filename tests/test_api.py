@@ -112,3 +112,48 @@ async def test_sprint_summary_and_task_filter(client: AsyncClient, session: Asyn
     assert summary.json()["task_breakdown"]["REVIEW"] == 1
     assert filtered.status_code == 200
     assert len(filtered.json()) == 1
+
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "params",
+    [
+        {"skip": -1},
+        {"limit": 0},
+        {"limit": 101},
+    ],
+)
+async def test_client_pagination_rejects_invalid_values(
+    client: AsyncClient,
+    params: dict[str, int],
+) -> None:
+    response = await client.get("/api/clients", params=params)
+
+    assert response.status_code == 422
+
+
+
+@pytest.mark.asyncio
+async def test_project_health_detects_offsetting_estimation_errors(
+    client: AsyncClient,
+    session: AsyncSession,
+) -> None:
+    _, project, sprint, _, _ = await seed_minimal(session)
+
+    second_task = Task(
+        title="Implement feature",
+        description="Feature implementation",
+        priority=TaskPriority.MEDIUM,
+        status=TaskStatus.DONE,
+        estimated_hours=5,
+        actual_hours=8,
+        sprint_id=sprint.id,
+    )
+    session.add(second_task)
+    await session.commit()
+
+    response = await client.get(f"/api/projects/{project.id}/health")
+
+    assert response.status_code == 200
+    assert response.json()["estimate_points"] == 8.0
